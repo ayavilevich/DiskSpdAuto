@@ -6,6 +6,8 @@ param (
 
 )
 
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+
 $drives | % {
-    .\BenchmarkDrive.ps1 -drive $_ -testSize $testSize -durationSec $durationSec
+    & "$scriptDir\BenchmarkDrive.ps1" -drive $_ -testSize $testSize -durationSec $durationSec
 }
