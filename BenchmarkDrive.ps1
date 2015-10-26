@@ -106,19 +106,19 @@ function sum-tests {
 }
 
 # initialize test file
+# consider "fsutil file createnew <name of file> <size in bytes>" though can't control caching or content
 # best to do one per drive and not each test. also, had effect on "test duration" when was part of the test.
 $testFileParams='{0}benchmark.tmp' -f $drive
 $xmlFile=('{0}-Generation.xml' -f $batchId);
-$params=( ('-Rxml -d1 -c{0}' -f $testSize) ,$testFileParams) -join ' ';
+$params=( ('-Rxml -d1 -S -Z1M -c{0}' -f $testSize) ,$testFileParams) -join ' '; # make sure to write with cache disabled, or else on slow systems this will exit with data still writing from cache to disk.
 Write-Host $params
 Write-Host $xmlFile
 & $diskspd ($params -split ' ') > $xmlFile
 
-# fixed params
+# fixed params for tests
 $fixedParams='-L -S -Rxml'
 
 # batch auto params
-#$batchAutoParam='-d{0} -W{1} -C{2} -c{3}' -f $durationSec, $warmupSec, $cooldownSec, $testSize
 $batchAutoParam='-d{0} -W{1} -C{2}' -f $durationSec, $warmupSec, $cooldownSec
 
 # iterate over tests
@@ -128,9 +128,9 @@ foreach ($test in @{name='Sequential read'; params='-b1M -o1 -t1 -w0 -Z1M'},
     @{name='Random read'; params='-b4K -o1 -t1 -r -w0 -Z1M'},
     @{name='Random write'; params='-b4K -o1 -t1 -r -w100 -Z1M'},
     @{name='Random QD32 read'; params='-b4K -o32 -t1 -r -w0 -Z1M'},
-    @{name='Random QD32 write'; params='-b4K -o32 -t1 -r -w100 -Z1M'},
+    @{name='Random QD32 write'; params='-b4K -o32 -t1 -r -w100 -Z1M'}<#,
     @{name='Random T32 read'; params='-b4k -o1 -t32 -r -w0 -Z1M'},
-    @{name='Random T32 write'; params='-b4k -o1 -t32 -r -w100 -Z1M'}) {
+    @{name='Random T32 write'; params='-b4k -o1 -t32 -r -w100 -Z1M'}#>) {
         # run test
         $params=($fixedParams,$batchAutoParam,$test.params,$testFileParams) -join ' ';
         $xmlFile=('{0}-{1}.xml' -f $batchId, $test.name);
